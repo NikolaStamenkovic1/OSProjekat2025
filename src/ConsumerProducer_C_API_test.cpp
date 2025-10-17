@@ -1,0 +1,159 @@
+
+#include "../h/syscall_c.h"
+#include "../lib/console.h"
+#include "buffer.hpp"
+
+//apsolutno prvo mora da se popravi putc, ali u svrhu testiranja sta se ovde pogresi, ajmo prvo da popravimo----------------------------!
+
+static sem_t waitForAll;
+
+struct thread_data {
+    int id;
+    Buffer *buffer;
+    sem_t wait;
+};
+
+static volatile int threadEnd = 0;
+
+static void producerKeyboard(void *arg) {
+    struct thread_data *data = (struct thread_data *) arg;
+    /*__putc('K');
+    __putc('\n');
+    printInt(data->id);
+    __putc('\n');*/
+
+    int key;
+    int i = 0;
+    while ((key = getc()) != 0x30) {//change this to see if it will force end properly since i dont recognize that code (escape character 0x1b)
+        //__putc('G');
+        //__putc('\n');
+        data->buffer->put(key);
+        i++;
+
+        if (i % (10 * data->id) == 0) {
+            thread_dispatch();
+        }
+    }
+    /*__putc('L');
+    __putc('\n');*/
+    threadEnd = 1;
+    data->buffer->put('!');
+
+    sem_signal(data->wait);
+}
+
+static void producer(void *arg) {
+    struct thread_data *data = (struct thread_data *) arg;
+    /*__putc('P');
+    __putc('\n');
+    printInt(data->id);
+    __putc('\n');*/
+
+    int i = 0;
+    while (!threadEnd) {
+        //__putc('P');
+        //__putc('\n');
+        data->buffer->put(data->id + '0');
+        i++;
+
+        if (i % (10 * data->id) == 0) {
+            thread_dispatch();
+        }
+    }
+
+    sem_signal(data->wait);
+}
+
+static void consumer(void *arg) {
+    struct thread_data *data = (struct thread_data *) arg;
+    /*__putc('C');
+    __putc('\n');
+    printInt(data->id);
+    __putc('\n');*/
+
+    int i = 0;
+    while (!threadEnd) {
+        //__putc('C');
+        //__putc('\n');
+        int key = data->buffer->get();
+        i++;
+
+        putc(key);
+
+        if (i % (5 * data->id) == 0) {
+            thread_dispatch();
+        }
+
+        if (i % 80 == 0) {
+            putc('\n');
+        }
+    }
+
+    while (data->buffer->getCnt() > 0) {
+        int key = data->buffer->get();
+        putc(key);
+    }
+    //__putc('e');
+    //__putc('\n');
+    sem_signal(data->wait); //signal not freeing it at 10---------------------------------------------------------------!
+}
+
+void producerConsumer_C_API() {
+    char input[30];
+    int n, threadNum;
+
+    printString("Unesite broj proizvodjaca?\n");
+    getString(input, 30);
+    threadNum = stringToInt(input);
+
+    printString("Unesite velicinu bafera?\n");
+    getString(input, 30);
+    n = stringToInt(input);
+
+    printString("Broj proizvodjaca "); printInt(threadNum);
+    printString(" i velicina bafera "); printInt(n);
+    printString(".\n");
+
+    if(threadNum > n) {
+        printString("Broj proizvodjaca ne sme biti manji od velicine bafera!\n");
+        return;
+    } else if (threadNum < 1) {
+        printString("Broj proizvodjaca mora biti veci od nula!\n");
+        return;
+    }
+
+    Buffer *buffer = new Buffer(n);
+
+    sem_open(&waitForAll, 0); // this is set as 0 initially, should it be one?------------------------------------------!!
+
+    thread_t threads[threadNum];
+    thread_t consumerThread;
+
+    struct thread_data data[threadNum + 1];
+
+    data[threadNum].id = threadNum;
+    data[threadNum].buffer = buffer;
+    data[threadNum].wait = waitForAll;
+    thread_create(&consumerThread, consumer, data + threadNum);
+
+    for (int i = 0; i < threadNum; i++) {
+        data[i].id = i;
+        data[i].buffer = buffer;
+        data[i].wait = waitForAll;
+
+        thread_create(threads + i,
+                      i > 0 ? producer : producerKeyboard,
+                      data + i);
+    }
+
+    thread_dispatch(); //dispatch here is where SCAUSE = 7 happens-------------------------------------------------------!
+
+    for (int i = 0; i <= threadNum; i++) {
+        sem_wait(waitForAll);
+    }
+    printString("\nEnding nicely?\n");
+    sem_close(waitForAll);
+
+    delete buffer;
+
+}

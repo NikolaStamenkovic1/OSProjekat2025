@@ -1,0 +1,485 @@
+GAS LISTING /tmp/ccVnyMYD.s 			page 1
+
+
+   1              		.file	"putterT.cpp"
+   2              		.option pic
+   3              		.option norelax
+   4              		.text
+   5              	.Ltext0:
+   6              		.align	2
+   7              		.globl	_ZN8ConsoleC7putterTEv
+   9              	_ZN8ConsoleC7putterTEv:
+  10              	.LFB56:
+  11              		.file 1 "src/putterT.cpp"
+   1:src/putterT.cpp **** //
+   2:src/putterT.cpp **** // Created by os on 9/16/25.
+   3:src/putterT.cpp **** //
+   4:src/putterT.cpp **** #include "../h/Semaphore.h"
+   5:src/putterT.cpp **** #include "../h/console.h"
+   6:src/putterT.cpp **** #include "../h/tcb.h"
+   7:src/putterT.cpp **** 
+   8:src/putterT.cpp **** 
+   9:src/putterT.cpp **** void ConsoleC:: putterT()
+  10:src/putterT.cpp **** {
+  12              		.loc 1 10 1
+  13              		.cfi_startproc
+  14              	.L5:
+  11:src/putterT.cpp ****     //nit jezgra koja treba da kontrolise slanje do kontrolera console
+  12:src/putterT.cpp ****     //prvo proveri da li je spreman kontroler tako sto proveri console status register (bit 5 ovde)
+  13:src/putterT.cpp ****     //ako jeste, salji iz bafera sve dok bafer ima nesto i bit idalje postavljen tacno
+  14:src/putterT.cpp ****     //blokira se ako je bafer prazan
+  15:src/putterT.cpp ****     while(1)
+  15              		.loc 1 15 5
+  16              	.LBB6:
+  16:src/putterT.cpp ****     {
+  17:src/putterT.cpp ****         while( ( *((char *)(CONSOLE_STATUS)) & CONSOLE_TX_STATUS_BIT ) )
+  17              		.loc 1 17 9
+  18              		.loc 1 17 70
+  19              		.loc 1 17 18 is_stmt 0
+  20 0000 97070000 		la	a5,CONSOLE_STATUS
+  20      83B70700 
+  21 0008 83B70700 		ld	a5,0(a5)
+  22 000c 83C70700 		lbu	a5,0(a5)
+  23              		.loc 1 17 70
+  24 0010 93F70702 		andi	a5,a5,32
+  25 0014 E38607FE 		beqz	a5,.L5
+  26              	.LBE6:
+  10:src/putterT.cpp ****     //nit jezgra koja treba da kontrolise slanje do kontrolera console
+  27              		.loc 1 10 1
+  28 0018 130101FE 		addi	sp,sp,-32
+  29              		.cfi_def_cfa_offset 32
+  30 001c 233C1100 		sd	ra,24(sp)
+  31 0020 23388100 		sd	s0,16(sp)
+  32 0024 23349100 		sd	s1,8(sp)
+  33              		.cfi_offset 1, -8
+  34              		.cfi_offset 8, -16
+  35              		.cfi_offset 9, -24
+  36 0028 13040102 		addi	s0,sp,32
+  37              		.cfi_def_cfa 8, 0
+  38              	.L6:
+  39              	.LBB10:
+GAS LISTING /tmp/ccVnyMYD.s 			page 2
+
+
+  40              	.LBB7:
+  18:src/putterT.cpp ****         {
+  19:src/putterT.cpp ****             jezgroSem->wait();
+  41              		.loc 1 19 13 is_stmt 1
+  42              		.loc 1 19 28 is_stmt 0
+  43 002c 97070000 		la	a5,_ZN8ConsoleC9jezgroSemE
+  43      83B70700 
+  44 0034 03B50700 		ld	a0,0(a5)
+  45 0038 97000000 		call	_ZN10SemaphoreC4waitEv@plt
+  45      E7800000 
+  46              	.LVL0:
+  20:src/putterT.cpp ****             mutex->wait();
+  47              		.loc 1 20 13 is_stmt 1
+  48              		.loc 1 20 24 is_stmt 0
+  49 0040 97040000 		la	s1,_ZN8ConsoleC5mutexE
+  49      83B40400 
+  50 0048 03B50400 		ld	a0,0(s1)
+  51 004c 97000000 		call	_ZN10SemaphoreC4waitEv@plt
+  51      E7800000 
+  52              	.LVL1:
+  21:src/putterT.cpp ****             char *recieve_reg = (char*)CONSOLE_TX_DATA;
+  53              		.loc 1 21 13 is_stmt 1
+  54              		.loc 1 21 19 is_stmt 0
+  55 0054 97070000 		la	a5,CONSOLE_TX_DATA
+  55      83B70700 
+  56 005c 03B60700 		ld	a2,0(a5)
+  57              	.LVL2:
+  22:src/putterT.cpp ****             *recieve_reg = outputBuffer->withdraw();
+  58              		.loc 1 22 13 is_stmt 1
+  59              		.loc 1 22 50 is_stmt 0
+  60 0060 97070000 		la	a5,_ZN8ConsoleC12outputBufferE
+  60      83B70700 
+  61 0068 83B70700 		ld	a5,0(a5)
+  62              	.LVL3:
+  63              	.LBB8:
+  64              	.LBB9:
+  65              		.file 2 "src/../h/buffer.h"
+   1:src/../h/buffer.h **** //
+   2:src/../h/buffer.h **** // Created by os on 9/15/25.
+   3:src/../h/buffer.h **** //
+   4:src/../h/buffer.h **** 
+   5:src/../h/buffer.h **** #ifndef PROJECT_BASE_BUFFER_H
+   6:src/../h/buffer.h **** #define PROJECT_BASE_BUFFER_H
+   7:src/../h/buffer.h **** 
+   8:src/../h/buffer.h **** 
+   9:src/../h/buffer.h **** #include "../lib/console.h"
+  10:src/../h/buffer.h **** #include "../src/printing.hpp"
+  11:src/../h/buffer.h **** #include "MemoryAllocator.h"
+  12:src/../h/buffer.h **** 
+  13:src/../h/buffer.h **** static const uint64 DEFAULT_BUFFER_SIZE = 16;
+  14:src/../h/buffer.h **** 
+  15:src/../h/buffer.h **** class Buffer
+  16:src/../h/buffer.h **** {
+  17:src/../h/buffer.h **** private:
+  18:src/../h/buffer.h ****     uint64 counter;
+  19:src/../h/buffer.h ****     uint64 cap;
+  20:src/../h/buffer.h **** 
+GAS LISTING /tmp/ccVnyMYD.s 			page 3
+
+
+  21:src/../h/buffer.h ****     uint64 head;
+  22:src/../h/buffer.h ****     uint64 tail;
+  23:src/../h/buffer.h ****     char* c_buffer;
+  24:src/../h/buffer.h **** 
+  25:src/../h/buffer.h **** 
+  26:src/../h/buffer.h **** public:
+  27:src/../h/buffer.h **** 
+  28:src/../h/buffer.h ****     Buffer(uint64 cap) : counter(0), cap(cap), head(0), tail(0),
+  29:src/../h/buffer.h ****         c_buffer( (char*) MemoryAllocator::mem_alloc(cap * sizeof(char)))
+  30:src/../h/buffer.h ****     {
+  31:src/../h/buffer.h **** 
+  32:src/../h/buffer.h ****     }
+  33:src/../h/buffer.h ****     ~Buffer() { mem_free(c_buffer); }
+  34:src/../h/buffer.h **** 
+  35:src/../h/buffer.h ****     uchar withdraw()
+  36:src/../h/buffer.h ****     {
+  37:src/../h/buffer.h ****         counter--;
+  66              		.loc 2 37 9 is_stmt 1
+  67 006c 03B70700 		ld	a4,0(a5)
+  68              		.loc 2 37 16 is_stmt 0
+  69 0070 1307F7FF 		addi	a4,a4,-1
+  70 0074 23B0E700 		sd	a4,0(a5)
+  38:src/../h/buffer.h ****         uchar c = c_buffer[tail];
+  71              		.loc 2 38 9 is_stmt 1
+  72              		.loc 2 38 19 is_stmt 0
+  73 0078 83B60702 		ld	a3,32(a5)
+  74              		.loc 2 38 28
+  75 007c 03B78701 		ld	a4,24(a5)
+  76              		.loc 2 38 32
+  77 0080 B386E600 		add	a3,a3,a4
+  78              		.loc 2 38 15
+  79 0084 83C60600 		lbu	a3,0(a3)
+  80              	.LVL4:
+  39:src/../h/buffer.h ****         tail = (tail + 1) % cap;
+  81              		.loc 2 39 9 is_stmt 1
+  82              		.loc 2 39 22 is_stmt 0
+  83 0088 13071700 		addi	a4,a4,1
+  84              		.loc 2 39 29
+  85 008c 83B58700 		ld	a1,8(a5)
+  86              		.loc 2 39 27
+  87 0090 3377B702 		remu	a4,a4,a1
+  88              		.loc 2 39 14
+  89 0094 23BCE700 		sd	a4,24(a5)
+  40:src/../h/buffer.h ****         return c;
+  90              		.loc 2 40 9 is_stmt 1
+  91              	.LVL5:
+  92              	.LBE9:
+  93              	.LBE8:
+  94              		.loc 1 22 26 is_stmt 0
+  95 0098 2300D600 		sb	a3,0(a2)
+  23:src/putterT.cpp ****             if(recieve_reg) {} //check this later--------------------------------------------------
+  96              		.loc 1 23 13 is_stmt 1
+  24:src/putterT.cpp ****             mutex->signal();
+  97              		.loc 1 24 13
+  98              		.loc 1 24 26 is_stmt 0
+  99 009c 03B50400 		ld	a0,0(s1)
+ 100 00a0 97000000 		call	_ZN10SemaphoreC6signalEv@plt
+GAS LISTING /tmp/ccVnyMYD.s 			page 4
+
+
+ 100      E7800000 
+ 101              	.LVL6:
+  25:src/putterT.cpp ****             putSem->signal();
+ 102              		.loc 1 25 13 is_stmt 1
+ 103              		.loc 1 25 27 is_stmt 0
+ 104 00a8 97070000 		la	a5,_ZN8ConsoleC6putSemE
+ 104      83B70700 
+ 105 00b0 03B50700 		ld	a0,0(a5)
+ 106 00b4 97000000 		call	_ZN10SemaphoreC6signalEv@plt
+ 106      E7800000 
+ 107              	.LVL7:
+ 108              	.L2:
+ 109              	.LBE7:
+ 110              	.LBE10:
+  15:src/putterT.cpp ****     {
+ 111              		.loc 1 15 5 is_stmt 1
+ 112              	.LBB11:
+  17:src/putterT.cpp ****         {
+ 113              		.loc 1 17 9
+  17:src/putterT.cpp ****         {
+ 114              		.loc 1 17 70
+  17:src/putterT.cpp ****         {
+ 115              		.loc 1 17 18 is_stmt 0
+ 116 00bc 97070000 		la	a5,CONSOLE_STATUS
+ 116      83B70700 
+ 117 00c4 83B70700 		ld	a5,0(a5)
+ 118 00c8 83C70700 		lbu	a5,0(a5)
+  17:src/putterT.cpp ****         {
+ 119              		.loc 1 17 70
+ 120 00cc 93F70702 		andi	a5,a5,32
+ 121 00d0 E38607FE 		beqz	a5,.L2
+ 122 00d4 6FF09FF5 		j	.L6
+ 123              	.LBE11:
+ 124              		.cfi_endproc
+ 125              	.LFE56:
+ 127              	.Letext0:
+ 128              		.file 3 "src/../h/../lib/hw.h"
+ 129              		.file 4 "src/../h/list.h"
+ 130              		.file 5 "src/../h/tcb.h"
+ 131              		.file 6 "src/../h/Semaphore.h"
+ 132              		.file 7 "src/../h/console.h"
+ 133              		.file 8 "src/../h/../src/../h/syscall_c.h"
+GAS LISTING /tmp/ccVnyMYD.s 			page 5
+
+
+DEFINED SYMBOLS
+                            *ABS*:0000000000000000 putterT.cpp
+     /tmp/ccVnyMYD.s:9      .text:0000000000000000 _ZN8ConsoleC7putterTEv
+     /tmp/ccVnyMYD.s:13     .text:0000000000000000 .L0 
+     /tmp/ccVnyMYD.s:15     .text:0000000000000000 .L0 
+     /tmp/ccVnyMYD.s:17     .text:0000000000000000 .L0 
+     /tmp/ccVnyMYD.s:18     .text:0000000000000000 .L0 
+     /tmp/ccVnyMYD.s:19     .text:0000000000000000 .L0 
+     /tmp/ccVnyMYD.s:20     .text:0000000000000000 .L0 
+     /tmp/ccVnyMYD.s:24     .text:0000000000000010 .L0 
+     /tmp/ccVnyMYD.s:28     .text:0000000000000018 .L0 
+     /tmp/ccVnyMYD.s:29     .text:000000000000001c .L0 
+     /tmp/ccVnyMYD.s:33     .text:0000000000000028 .L0 
+     /tmp/ccVnyMYD.s:34     .text:0000000000000028 .L0 
+     /tmp/ccVnyMYD.s:35     .text:0000000000000028 .L0 
+     /tmp/ccVnyMYD.s:37     .text:000000000000002c .L0 
+     /tmp/ccVnyMYD.s:42     .text:000000000000002c .L0 
+     /tmp/ccVnyMYD.s:43     .text:000000000000002c .L0 
+     /tmp/ccVnyMYD.s:48     .text:0000000000000040 .L0 
+     /tmp/ccVnyMYD.s:49     .text:0000000000000040 .L0 
+     /tmp/ccVnyMYD.s:54     .text:0000000000000054 .L0 
+     /tmp/ccVnyMYD.s:55     .text:0000000000000054 .L0 
+     /tmp/ccVnyMYD.s:59     .text:0000000000000060 .L0 
+     /tmp/ccVnyMYD.s:60     .text:0000000000000060 .L0 
+     /tmp/ccVnyMYD.s:67     .text:000000000000006c .L0 
+     /tmp/ccVnyMYD.s:69     .text:0000000000000070 .L0 
+     /tmp/ccVnyMYD.s:72     .text:0000000000000078 .L0 
+     /tmp/ccVnyMYD.s:73     .text:0000000000000078 .L0 
+     /tmp/ccVnyMYD.s:75     .text:000000000000007c .L0 
+     /tmp/ccVnyMYD.s:77     .text:0000000000000080 .L0 
+     /tmp/ccVnyMYD.s:79     .text:0000000000000084 .L0 
+     /tmp/ccVnyMYD.s:82     .text:0000000000000088 .L0 
+     /tmp/ccVnyMYD.s:83     .text:0000000000000088 .L0 
+     /tmp/ccVnyMYD.s:85     .text:000000000000008c .L0 
+     /tmp/ccVnyMYD.s:87     .text:0000000000000090 .L0 
+     /tmp/ccVnyMYD.s:89     .text:0000000000000094 .L0 
+     /tmp/ccVnyMYD.s:94     .text:0000000000000098 .L0 
+     /tmp/ccVnyMYD.s:95     .text:0000000000000098 .L0 
+     /tmp/ccVnyMYD.s:97     .text:000000000000009c .L0 
+     /tmp/ccVnyMYD.s:98     .text:000000000000009c .L0 
+     /tmp/ccVnyMYD.s:99     .text:000000000000009c .L0 
+     /tmp/ccVnyMYD.s:103    .text:00000000000000a8 .L0 
+     /tmp/ccVnyMYD.s:104    .text:00000000000000a8 .L0 
+     /tmp/ccVnyMYD.s:113    .text:00000000000000bc .L0 
+     /tmp/ccVnyMYD.s:114    .text:00000000000000bc .L0 
+     /tmp/ccVnyMYD.s:115    .text:00000000000000bc .L0 
+     /tmp/ccVnyMYD.s:116    .text:00000000000000bc .L0 
+     /tmp/ccVnyMYD.s:120    .text:00000000000000cc .L0 
+     /tmp/ccVnyMYD.s:124    .text:00000000000000d8 .L0 
+     /tmp/ccVnyMYD.s:134    .text:00000000000000d8 .L0 
+     /tmp/ccVnyMYD.s:20     .text:0000000000000000 .L0 
+     /tmp/ccVnyMYD.s:43     .text:000000000000002c .L0 
+     /tmp/ccVnyMYD.s:49     .text:0000000000000040 .L0 
+     /tmp/ccVnyMYD.s:55     .text:0000000000000054 .L0 
+     /tmp/ccVnyMYD.s:60     .text:0000000000000060 .L0 
+     /tmp/ccVnyMYD.s:104    .text:00000000000000a8 .L0 
+     /tmp/ccVnyMYD.s:116    .text:00000000000000bc .L0 
+GAS LISTING /tmp/ccVnyMYD.s 			page 6
+
+
+     /tmp/ccVnyMYD.s:14     .text:0000000000000000 .L5
+     /tmp/ccVnyMYD.s:108    .text:00000000000000bc .L2
+     /tmp/ccVnyMYD.s:38     .text:000000000000002c .L6
+     /tmp/ccVnyMYD.s:1345   .debug_abbrev:0000000000000000 .Ldebug_abbrev0
+     /tmp/ccVnyMYD.s:2410   .debug_str:000000000000068b .LASF141
+     /tmp/ccVnyMYD.s:2256   .debug_str:0000000000000286 .LASF142
+     /tmp/ccVnyMYD.s:2274   .debug_str:00000000000002f9 .LASF143
+     /tmp/ccVnyMYD.s:5      .text:0000000000000000 .Ltext0
+     /tmp/ccVnyMYD.s:127    .text:00000000000000d8 .Letext0
+     /tmp/ccVnyMYD.s:2174   .debug_line:0000000000000000 .Ldebug_line0
+     /tmp/ccVnyMYD.s:2268   .debug_str:00000000000002d5 .LASF0
+     /tmp/ccVnyMYD.s:2280   .debug_str:0000000000000333 .LASF1
+     /tmp/ccVnyMYD.s:2328   .debug_str:0000000000000490 .LASF3
+     /tmp/ccVnyMYD.s:2348   .debug_str:0000000000000507 .LASF2
+     /tmp/ccVnyMYD.s:2358   .debug_str:000000000000054b .LASF4
+     /tmp/ccVnyMYD.s:2272   .debug_str:00000000000002e7 .LASF5
+     /tmp/ccVnyMYD.s:2188   .debug_str:0000000000000077 .LASF6
+     /tmp/ccVnyMYD.s:2326   .debug_str:000000000000047d .LASF7
+     /tmp/ccVnyMYD.s:2276   .debug_str:0000000000000317 .LASF8
+     /tmp/ccVnyMYD.s:2254   .debug_str:0000000000000276 .LASF9
+     /tmp/ccVnyMYD.s:2260   .debug_str:00000000000002a2 .LASF10
+     /tmp/ccVnyMYD.s:2214   .debug_str:0000000000000130 .LASF11
+     /tmp/ccVnyMYD.s:2248   .debug_str:0000000000000256 .LASF12
+     /tmp/ccVnyMYD.s:2224   .debug_str:000000000000019a .LASF13
+     /tmp/ccVnyMYD.s:2212   .debug_str:0000000000000120 .LASF14
+     /tmp/ccVnyMYD.s:2388   .debug_str:0000000000000603 .LASF15
+     /tmp/ccVnyMYD.s:2236   .debug_str:00000000000001d8 .LASF16
+     /tmp/ccVnyMYD.s:2376   .debug_str:00000000000005a9 .LASF17
+     /tmp/ccVnyMYD.s:2448   .debug_str:0000000000000869 .LASF35
+     /tmp/ccVnyMYD.s:2430   .debug_str:00000000000007d7 .LASF144
+     /tmp/ccVnyMYD.s:2384   .debug_str:00000000000005f1 .LASF18
+     /tmp/ccVnyMYD.s:2314   .debug_str:0000000000000450 .LASF19
+     /tmp/ccVnyMYD.s:2310   .debug_str:0000000000000434 .LASF20
+     /tmp/ccVnyMYD.s:2378   .debug_str:00000000000005bf .LASF22
+     /tmp/ccVnyMYD.s:2244   .debug_str:0000000000000228 .LASF27
+     /tmp/ccVnyMYD.s:2352   .debug_str:0000000000000522 .LASF145
+     /tmp/ccVnyMYD.s:2342   .debug_str:00000000000004de .LASF146
+     /tmp/ccVnyMYD.s:2278   .debug_str:000000000000032a .LASF21
+     /tmp/ccVnyMYD.s:2206   .debug_str:00000000000000e5 .LASF23
+     /tmp/ccVnyMYD.s:2294   .debug_str:00000000000003b6 .LASF24
+     /tmp/ccVnyMYD.s:2238   .debug_str:00000000000001ee .LASF25
+     /tmp/ccVnyMYD.s:2324   .debug_str:0000000000000471 .LASF26
+     /tmp/ccVnyMYD.s:2450   .debug_str:0000000000000873 .LASF28
+     /tmp/ccVnyMYD.s:2480   .debug_str:0000000000000990 .LASF29
+     /tmp/ccVnyMYD.s:2470   .debug_str:0000000000000931 .LASF30
+     /tmp/ccVnyMYD.s:2368   .debug_str:000000000000057c .LASF31
+     /tmp/ccVnyMYD.s:2308   .debug_str:0000000000000417 .LASF32
+     /tmp/ccVnyMYD.s:2336   .debug_str:00000000000004c7 .LASF33
+     /tmp/ccVnyMYD.s:2182   .debug_str:0000000000000029 .LASF34
+     /tmp/ccVnyMYD.s:2396   .debug_str:0000000000000635 .LASF147
+     /tmp/ccVnyMYD.s:2360   .debug_str:0000000000000552 .LASF36
+     /tmp/ccVnyMYD.s:2186   .debug_str:000000000000006b .LASF37
+     /tmp/ccVnyMYD.s:2398   .debug_str:000000000000063d .LASF38
+     /tmp/ccVnyMYD.s:2312   .debug_str:0000000000000439 .LASF39
+     /tmp/ccVnyMYD.s:2200   .debug_str:00000000000000bc .LASF40
+     /tmp/ccVnyMYD.s:2426   .debug_str:00000000000007b1 .LASF41
+     /tmp/ccVnyMYD.s:2286   .debug_str:0000000000000367 .LASF42
+GAS LISTING /tmp/ccVnyMYD.s 			page 7
+
+
+     /tmp/ccVnyMYD.s:2436   .debug_str:00000000000007f1 .LASF43
+     /tmp/ccVnyMYD.s:2460   .debug_str:00000000000008e8 .LASF44
+     /tmp/ccVnyMYD.s:2208   .debug_str:0000000000000102 .LASF45
+     /tmp/ccVnyMYD.s:2468   .debug_str:0000000000000925 .LASF46
+     /tmp/ccVnyMYD.s:2390   .debug_str:000000000000060f .LASF47
+     /tmp/ccVnyMYD.s:2264   .debug_str:00000000000002b8 .LASF48
+     /tmp/ccVnyMYD.s:2382   .debug_str:00000000000005d9 .LASF49
+     /tmp/ccVnyMYD.s:2284   .debug_str:0000000000000361 .LASF61
+     /tmp/ccVnyMYD.s:2416   .debug_str:0000000000000778 .LASF63
+     /tmp/ccVnyMYD.s:2408   .debug_str:0000000000000683 .LASF148
+     /tmp/ccVnyMYD.s:2386   .debug_str:00000000000005f6 .LASF50
+     /tmp/ccVnyMYD.s:2438   .debug_str:000000000000080a .LASF51
+     /tmp/ccVnyMYD.s:2322   .debug_str:000000000000046c .LASF149
+     /tmp/ccVnyMYD.s:2458   .debug_str:00000000000008c6 .LASF52
+     /tmp/ccVnyMYD.s:2300   .debug_str:00000000000003df .LASF130
+     /tmp/ccVnyMYD.s:2246   .debug_str:000000000000023f .LASF132
+     /tmp/ccVnyMYD.s:2478   .debug_str:0000000000000983 .LASF53
+     /tmp/ccVnyMYD.s:2258   .debug_str:0000000000000296 .LASF54
+     /tmp/ccVnyMYD.s:2302   .debug_str:00000000000003eb .LASF55
+     /tmp/ccVnyMYD.s:2252   .debug_str:000000000000026a .LASF56
+     /tmp/ccVnyMYD.s:2178   .debug_str:0000000000000005 .LASF57
+     /tmp/ccVnyMYD.s:2296   .debug_str:00000000000003be .LASF59
+     /tmp/ccVnyMYD.s:2374   .debug_str:0000000000000596 .LASF58
+     /tmp/ccVnyMYD.s:2350   .debug_str:0000000000000515 .LASF60
+     /tmp/ccVnyMYD.s:2292   .debug_str:00000000000003aa .LASF62
+     /tmp/ccVnyMYD.s:2306   .debug_str:0000000000000400 .LASF64
+     /tmp/ccVnyMYD.s:2330   .debug_str:0000000000000496 .LASF65
+     /tmp/ccVnyMYD.s:2472   .debug_str:000000000000094c .LASF66
+     /tmp/ccVnyMYD.s:2176   .debug_str:0000000000000000 .LASF67
+     /tmp/ccVnyMYD.s:2370   .debug_str:0000000000000587 .LASF68
+     /tmp/ccVnyMYD.s:2392   .debug_str:0000000000000627 .LASF69
+     /tmp/ccVnyMYD.s:2424   .debug_str:00000000000007a9 .LASF70
+     /tmp/ccVnyMYD.s:2394   .debug_str:000000000000062c .LASF71
+     /tmp/ccVnyMYD.s:2422   .debug_str:000000000000079f .LASF72
+     /tmp/ccVnyMYD.s:2418   .debug_str:0000000000000788 .LASF73
+     /tmp/ccVnyMYD.s:2476   .debug_str:0000000000000979 .LASF74
+     /tmp/ccVnyMYD.s:2364   .debug_str:000000000000055f .LASF123
+     /tmp/ccVnyMYD.s:2230   .debug_str:00000000000001c2 .LASF75
+     /tmp/ccVnyMYD.s:2216   .debug_str:000000000000013f .LASF77
+     /tmp/ccVnyMYD.s:2226   .debug_str:00000000000001aa .LASF150
+     /tmp/ccVnyMYD.s:2184   .debug_str:0000000000000043 .LASF151
+     /tmp/ccVnyMYD.s:2204   .debug_str:00000000000000d7 .LASF76
+     /tmp/ccVnyMYD.s:2288   .debug_str:0000000000000374 .LASF78
+     /tmp/ccVnyMYD.s:2338   .debug_str:00000000000004d0 .LASF79
+     /tmp/ccVnyMYD.s:2354   .debug_str:000000000000052c .LASF80
+     /tmp/ccVnyMYD.s:2340   .debug_str:00000000000004d5 .LASF81
+     /tmp/ccVnyMYD.s:2220   .debug_str:0000000000000167 .LASF82
+     /tmp/ccVnyMYD.s:2366   .debug_str:0000000000000570 .LASF83
+     /tmp/ccVnyMYD.s:2414   .debug_str:0000000000000764 .LASF84
+     /tmp/ccVnyMYD.s:2232   .debug_str:00000000000001cb .LASF85
+     /tmp/ccVnyMYD.s:2454   .debug_str:0000000000000898 .LASF86
+     /tmp/ccVnyMYD.s:2400   .debug_str:0000000000000648 .LASF87
+     /tmp/ccVnyMYD.s:2402   .debug_str:000000000000064f .LASF88
+     /tmp/ccVnyMYD.s:2262   .debug_str:00000000000002b0 .LASF89
+     /tmp/ccVnyMYD.s:2282   .debug_str:0000000000000346 .LASF90
+     /tmp/ccVnyMYD.s:2210   .debug_str:0000000000000117 .LASF91
+     /tmp/ccVnyMYD.s:2446   .debug_str:000000000000084d .LASF92
+GAS LISTING /tmp/ccVnyMYD.s 			page 8
+
+
+     /tmp/ccVnyMYD.s:2194   .debug_str:000000000000009f .LASF93
+     /tmp/ccVnyMYD.s:2222   .debug_str:0000000000000182 .LASF94
+     /tmp/ccVnyMYD.s:2192   .debug_str:000000000000008b .LASF95
+     /tmp/ccVnyMYD.s:2180   .debug_str:0000000000000015 .LASF96
+     /tmp/ccVnyMYD.s:2218   .debug_str:0000000000000152 .LASF97
+     /tmp/ccVnyMYD.s:2412   .debug_str:000000000000074f .LASF98
+     /tmp/ccVnyMYD.s:2444   .debug_str:0000000000000839 .LASF99
+     /tmp/ccVnyMYD.s:2452   .debug_str:0000000000000891 .LASF100
+     /tmp/ccVnyMYD.s:2318   .debug_str:000000000000045d .LASF101
+     /tmp/ccVnyMYD.s:2298   .debug_str:00000000000003cb .LASF102
+     /tmp/ccVnyMYD.s:2442   .debug_str:0000000000000832 .LASF103
+     /tmp/ccVnyMYD.s:2362   .debug_str:0000000000000557 .LASF104
+     /tmp/ccVnyMYD.s:2434   .debug_str:00000000000007e8 .LASF105
+     /tmp/ccVnyMYD.s:2466   .debug_str:0000000000000916 .LASF106
+     /tmp/ccVnyMYD.s:2440   .debug_str:000000000000082a .LASF107
+     /tmp/ccVnyMYD.s:2428   .debug_str:00000000000007c8 .LASF108
+     /tmp/ccVnyMYD.s:2242   .debug_str:000000000000021f .LASF109
+     /tmp/ccVnyMYD.s:2474   .debug_str:0000000000000963 .LASF110
+     /tmp/ccVnyMYD.s:2316   .debug_str:0000000000000455 .LASF111
+     /tmp/ccVnyMYD.s:2334   .debug_str:00000000000004b2 .LASF112
+     /tmp/ccVnyMYD.s:2202   .debug_str:00000000000000c8 .LASF113
+     /tmp/ccVnyMYD.s:2196   .debug_str:00000000000000a5 .LASF114
+     /tmp/ccVnyMYD.s:2464   .debug_str:0000000000000906 .LASF115
+     /tmp/ccVnyMYD.s:2266   .debug_str:00000000000002c5 .LASF116
+     /tmp/ccVnyMYD.s:2380   .debug_str:00000000000005d2 .LASF117
+     /tmp/ccVnyMYD.s:2240   .debug_str:000000000000020a .LASF118
+     /tmp/ccVnyMYD.s:2234   .debug_str:00000000000001d0 .LASF119
+     /tmp/ccVnyMYD.s:2406   .debug_str:000000000000066d .LASF120
+     /tmp/ccVnyMYD.s:2404   .debug_str:0000000000000668 .LASF121
+     /tmp/ccVnyMYD.s:2372   .debug_str:000000000000058d .LASF122
+     /tmp/ccVnyMYD.s:2320   .debug_str:0000000000000465 .LASF124
+     /tmp/ccVnyMYD.s:2332   .debug_str:00000000000004ab .LASF125
+     /tmp/ccVnyMYD.s:2228   .debug_str:00000000000001b8 .LASF126
+     /tmp/ccVnyMYD.s:2344   .debug_str:00000000000004f5 .LASF127
+     /tmp/ccVnyMYD.s:2432   .debug_str:00000000000007dc .LASF128
+     /tmp/ccVnyMYD.s:2190   .debug_str:000000000000007e .LASF129
+     /tmp/ccVnyMYD.s:2270   .debug_str:00000000000002e2 .LASF131
+     /tmp/ccVnyMYD.s:2462   .debug_str:00000000000008f2 .LASF133
+     /tmp/ccVnyMYD.s:2304   .debug_str:00000000000003fb .LASF134
+     /tmp/ccVnyMYD.s:2356   .debug_str:0000000000000537 .LASF135
+     /tmp/ccVnyMYD.s:2420   .debug_str:0000000000000792 .LASF136
+     /tmp/ccVnyMYD.s:2290   .debug_str:000000000000038d .LASF137
+     /tmp/ccVnyMYD.s:2198   .debug_str:00000000000000b4 .LASF138
+     /tmp/ccVnyMYD.s:2456   .debug_str:00000000000008af .LASF139
+     /tmp/ccVnyMYD.s:10     .text:0000000000000000 .LFB56
+     /tmp/ccVnyMYD.s:125    .text:00000000000000d8 .LFE56
+     /tmp/ccVnyMYD.s:40     .text:000000000000002c .LBB7
+     /tmp/ccVnyMYD.s:109    .text:00000000000000bc .LBE7
+     /tmp/ccVnyMYD.s:2346   .debug_str:00000000000004fb .LASF140
+     /tmp/ccVnyMYD.s:2140   .debug_loc:0000000000000000 .LLST0
+     /tmp/ccVnyMYD.s:63     .text:000000000000006c .LBB8
+     /tmp/ccVnyMYD.s:93     .text:0000000000000098 .LBE8
+     /tmp/ccVnyMYD.s:2147   .debug_loc:0000000000000023 .LLST1
+     /tmp/ccVnyMYD.s:2154   .debug_loc:0000000000000046 .LLST2
+     /tmp/ccVnyMYD.s:46     .text:0000000000000040 .LVL0
+     /tmp/ccVnyMYD.s:52     .text:0000000000000054 .LVL1
+     /tmp/ccVnyMYD.s:101    .text:00000000000000a8 .LVL6
+GAS LISTING /tmp/ccVnyMYD.s 			page 9
+
+
+     /tmp/ccVnyMYD.s:107    .text:00000000000000bc .LVL7
+     /tmp/ccVnyMYD.s:2250   .debug_str:0000000000000265 .LASF152
+     /tmp/ccVnyMYD.s:57     .text:0000000000000060 .LVL2
+     /tmp/ccVnyMYD.s:62     .text:000000000000006c .LVL3
+     /tmp/ccVnyMYD.s:91     .text:0000000000000098 .LVL5
+     /tmp/ccVnyMYD.s:80     .text:0000000000000088 .LVL4
+     /tmp/ccVnyMYD.s:135    .debug_info:0000000000000000 .Ldebug_info0
+
+UNDEFINED SYMBOLS
+CONSOLE_STATUS
+_ZN8ConsoleC9jezgroSemE
+_ZN10SemaphoreC4waitEv
+_ZN8ConsoleC5mutexE
+CONSOLE_TX_DATA
+_ZN8ConsoleC12outputBufferE
+_ZN10SemaphoreC6signalEv
+_ZN8ConsoleC6putSemE
