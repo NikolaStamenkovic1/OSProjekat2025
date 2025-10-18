@@ -6,7 +6,6 @@
 #define PROJECT_BASE_LIST_H
 
 #include "MemoryAllocator.h"
-#include "../lib/console.h"
 
 template<typename T>
 class List

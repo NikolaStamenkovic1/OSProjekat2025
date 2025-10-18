@@ -4,41 +4,37 @@
 
 #include "../h/tcb.h"
 #include "../h/riscv.h"
-#include "printing.hpp"
 
 TCB *TCB::running = nullptr;
 uint64 TCB::timeSliceCounter = 0;
 
-TCB* TCB::createThread(Body body, void* args)
+TCB* TCB::createThread(Body body, void* args) //create thread default, with default stack size
 {
     return new TCB(body, args, DEFAULT_TIME_SLICE);
 }
 
 TCB* TCB::createThread(Body body, void* args, uint64* stack)
 {
-    return new TCB(body, stack, args, DEFAULT_TIME_SLICE);
+    return new TCB(body, stack, args, DEFAULT_TIME_SLICE); //thread created by also giving stack
 }
 
 void TCB::yield()
 {
-    //push registers on - all the ones that arent ra and sp
-    //so we yield at the end of threat wrapper which needs to dispatch to the next nit - but ecall already used for
-    //syscalls - so we make a new code of operation
+    //yield so that it goes through ecall, i tako ima privelege
     __asm__ volatile("ecall");
 }
 
 void TCB::dispatch()
 {
-    //timeSliceCounter=0;
     TCB* old = running;
     if(!old->isFinished() && !old->isBlocked())
     {
-        //scheduler put old routine
+        //scheduler put old routine, if its not done or blocked
         Scheduler::put(old);
     }
-    running=Scheduler::get(); //ISSUE CAUSED HERE-----------------------------------------------------------------------!
-    Riscv::setPriviledge();
-    TCB::contextSwitch(&old->context, &running->context); //CONTEXT SWITCH IN
+    running=Scheduler::get(); //get new thread to run
+    Riscv::setPriviledge(); //give appropriate priveledge to thread
+    TCB::contextSwitch(&old->context, &running->context); //Switch context with threads
 }
 
 void TCB::threadWrapper()
@@ -47,7 +43,7 @@ void TCB::threadWrapper()
                         // to previous mode when executing from here thereafter, since it doesn't do it itself
     running->body(running->args);
     running->setFinished(true); //finish nit implicitno, dont have to explicitly release
-    yield();
+    yield(); // yield so it has privledge
 
 }
 
@@ -55,7 +51,7 @@ int TCB::thread_exit()
 {
     if(running->body == nullptr) return -1;
     running->setFinished(true);
-    dispatch();
+    dispatch(); //set so that is finished and then dispatch, which then releases thread since it is finished
     return 0;
 }
 

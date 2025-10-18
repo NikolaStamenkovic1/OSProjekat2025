@@ -86,7 +86,6 @@ public:
     // supervisor trap
     static void supervisorTrap();
 
-    //user mode - chagne to private later after testing----------------------------------------------------------------
 private:
 
     // supervisor trap handler

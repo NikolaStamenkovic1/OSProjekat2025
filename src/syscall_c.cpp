@@ -3,29 +3,16 @@
 //
 
 #include "../h/syscall_c.h"
-#include "printing.hpp"
-#include "../lib/console.h"
 
 void* mem_alloc(size_t size)
 {
-    /*
-    int64 rsize = size/MEM_BLOCK_SIZE;
-    if(size % MEM_BLOCK_SIZE > 0)rsize++;
-    abiCall(0x01, (uint64)rsize);
-    */
-    /*
-    if(size < MEM_BLOCK_SIZE) { newSize = 1;} else {
-        size /= MEM_BLOCK_SIZE;
-        newSize = (size % MEM_BLOCK_SIZE != 0) ? size + 1 : size;
-    }
-    */
-    size_t rsize = size * MEM_BLOCK_SIZE;
-    __asm__ volatile("mv a1, %0" : : "r"(rsize));
-    __asm__ volatile("li a0, 0x01");
-    __asm__ volatile("ecall");
+    size_t rsize = size * MEM_BLOCK_SIZE; //increase to mem block size? ako sam razumeo lepo
+    __asm__ volatile("mv a1, %0" : : "r"(rsize)); //argument passed through register, function to put it in without pregaz
+    __asm__ volatile("li a0, 0x01"); //load in to a0 the code that is read in riscv
+    __asm__ volatile("ecall"); //call interrupt handler
 
     void* retVal;
-    __asm__ volatile("mv %0, a0" : "=r"(retVal));
+    __asm__ volatile("mv %0, a0" : "=r"(retVal)); // read value out of
     return retVal;
 }
 int mem_free(void* p)
@@ -64,16 +51,14 @@ int thread_create(thread_t* handle, void(*start_routine)(void*), void* arg)
     if(start_routine)stack = mem_alloc(DEFAULT_STACK_SIZE);
     */
     void* volatile stack = nullptr;
-    if(start_routine) stack = MemoryAllocator::mem_alloc(DEFAULT_STACK_SIZE);
-    __asm__ volatile ("mv a4, %0" :: "r" (stack));
+    if(start_routine) stack = MemoryAllocator::mem_alloc(DEFAULT_STACK_SIZE); //allocate stack since c api doesn't by itself
+    __asm__ volatile ("mv a4, %0" :: "r" (stack)); //have to do in reverse order jer iz nekog razloga, pregazi stvari suprotono
     __asm__ volatile ("mv a3, %0" :: "r" (arg));
     __asm__ volatile ("mv a2, %0" :: "r" (start_routine));
     __asm__ volatile ("mv a1, %0" :: "r" (handle));
 
-    //printString("Syscall correclty starting\n");
     __asm__ volatile("li a0, 0x11");
     __asm__ volatile("ecall");
-    //printString("Syscall correclty finished\n");
 
     int retVal;
     __asm__ volatile("mv %0, a0" : "=r"(retVal));

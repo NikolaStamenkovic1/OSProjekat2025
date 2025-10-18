@@ -9,7 +9,6 @@ KERNEL_ASM = kernel.asm
 #libraries used - change when you complete them - mem i console samostalno treba da se uradi, obrisi ih kad uradis
 LIBS = \
   ${DIR_LIBS}/hw.lib \
-  ${DIR_LIBS}/console.lib
 # riscv64-unknown-elf- or riscv64-linux-gnu-
 # perhaps in /opt/riscv/bin
 #TOOLPREFIX =

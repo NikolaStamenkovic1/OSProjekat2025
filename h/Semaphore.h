@@ -13,7 +13,7 @@ class SemaphoreC
 public:
 
     static SemaphoreC* sem_open(int init = 0);
-    ~SemaphoreC() { close(); }
+    ~SemaphoreC() { close(); } //destructor also closes semaphore so all threads removed
     int wait();
     int signal();
 

@@ -5,12 +5,9 @@
 //remove first add last
 
 #include "../h/Semaphore.h"
-#include "printing.hpp"
-#include "../lib/console.h"
 
 SemaphoreC* SemaphoreC::sem_open(int init)
 {
-    //printString("NEW SEMAPHORE---\n");
     return new SemaphoreC(init);
 }
 
@@ -18,13 +15,13 @@ int SemaphoreC::wait()
 {
     if(this->isClosed()) return -1;
 
-    if((int)(--this->val) < 0){
+    if((int)(--this->val) < 0){ // if the value of sem ispod 0, zuastavi i blokiraj
         if(!TCB::running->isFinished() || !(TCB::running == nullptr)){
             TCB *tcb = TCB::running;
             tcb->t_blocked = true;
             this->blocked.addLast(tcb);
             TCB::timeSliceCounter=0;
-            TCB::dispatch();
+            TCB::dispatch(); //dispatch
         }
         if(this->closed) return -1;
     }
@@ -36,7 +33,7 @@ int SemaphoreC::signal()
 {
     if(this->isClosed()) return -1;
 
-    if((int)(++this->val) <= 0){
+    if((int)(++this->val) <= 0){ //if there is any thread waiting, unblock it if val is below or equal to 0
         TCB *tcb = this->blocked.removeFirst();
         tcb->t_blocked = false;
         Scheduler::put(tcb);
@@ -47,12 +44,12 @@ int SemaphoreC::signal()
 int SemaphoreC::close()
 {
     if(this->isClosed()) return -1;
-    while(this->blocked.peekLast()){ //peek first?
+    while(this->blocked.peekLast()){ //while there is sometihng at the back of the list, keep removing any threads and unblocking them
         TCB *tcb = this->blocked.removeFirst();
         tcb->t_blocked = false;
         Scheduler::put(tcb);
     }
-    closed = true;
+    closed = true; //then, call destructor and close sem
     return 0;
 
 }

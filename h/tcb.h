@@ -15,7 +15,7 @@ class TCB
 {
 public:
 
-    ~TCB() { delete[] stack; } //delete the whole stack??? might have issue here with mem leaks-----------------------------------------
+    ~TCB() { delete[] stack; } //delete the stack when
 
     bool isFinished() const { return finished; }
 
@@ -26,7 +26,7 @@ public:
     bool isBlocked() const { return t_blocked; }
 
     bool isSysThread() const { return sysThread; }
-
+    //friend void main();
     void setSysThread(bool value) { sysThread = value; } // PRIVATE THIS LATER-------------------------------------------!
 
     using Body = void(*)(void*);
@@ -61,27 +61,25 @@ public:
     static void idle_thread();
 
 
-private: //time slice can nullpoint
+private:
     explicit TCB(Body body, void* args, uint64 timeSlice): body(body),
         stack( body != nullptr ? ( (uint64*) MemoryAllocator::mem_alloc( DEFAULT_STACK_SIZE * sizeof(uint64) ) ) : 0), args(args),
         context(
            { (uint64) &threadWrapper, stack != nullptr ? (uint64) &stack[DEFAULT_STACK_SIZE] : 0 }
         ),finished(false), t_blocked(false), timeSlice(timeSlice), sysThread(false)
     {
-        //if(body != nullptr) Scheduler::put(this);
         Scheduler::put(this);
     }
-    explicit TCB(Body body, uint64* stack, void* args, uint64 timeSlice): body(body),
-        stack( stack != nullptr ? stack : 0), args(args),
+    explicit TCB(Body body, uint64* stack, void* args, uint64 timeSlice): body(body), //if stack given, assign it properly and divide by sizeof(uint64)
+        stack( stack != nullptr ? stack : 0), args(args),                             //since  the default stack size is in uint64
         context(
            { (uint64) &threadWrapper, stack != nullptr ? (uint64) &stack[DEFAULT_STACK_SIZE/sizeof(uint64)] : 0 }
         ),finished(false), t_blocked(false), timeSlice(timeSlice), sysThread(false)
     {
-        //if(body != nullptr) Scheduler::put(this);
         Scheduler::put(this);
     }
 
-    struct Context {
+    struct Context { //context of thread that will be switched
         uint64 ra;
         uint64 sp;
     };

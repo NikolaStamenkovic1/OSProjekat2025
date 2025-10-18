@@ -13,12 +13,11 @@ class ConsoleC
 private:
     static SemaphoreC *getSem;
     static SemaphoreC *putSem;
-    // third sem for the reverse direction of put - dont need for get since that is handled by prekidna rutina
     static SemaphoreC *jezgroSem;
     static SemaphoreC *mutex;
 
-    static Buffer *inputBuffer;//what cap do i give it? shouldn't that be user defined. ig access from main cpp
-    static Buffer *outputBuffer;//static dynamic? wrong probably check tomorrow
+    static Buffer *inputBuffer;
+    static Buffer *outputBuffer;
 public:
     static uchar getc();
     static void putc(uchar c);

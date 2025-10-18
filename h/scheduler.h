@@ -15,8 +15,6 @@ public:
     static TCB *get();
 
     static void put(TCB *tcb);
-
-    //static bool isEmpty() { return readyThreadQueue.peekFirst(); }
 };
 
 #endif //PROJECT_BASE_SCHEDULER_H

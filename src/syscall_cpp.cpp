@@ -4,7 +4,7 @@
 
 #include "../h/syscall_cpp.hpp"
 
-void* operator new (size_t size)
+void* operator new (size_t size) //new and delete assossciated with c api mem alloc and mem free
 {
     return mem_alloc(size);
 }
@@ -21,20 +21,18 @@ void operator delete[] (void* p) noexcept
     mem_free(p);
 }
 
-Thread::Thread (void (*body)(void*), void* arg)
-{
+Thread::Thread (void (*body)(void*), void* arg) // when thread called, set its body and args, but only create it when run
+{ //this way can replace run and ignore it
     this->body = body;
     this->arg = arg;
 }
 Thread::~Thread ()
 {
-    myHandle->setFinished(true);
+    myHandle->setFinished(true); //free thread by setting that its finished and then letting it dispatch
 }
 int Thread::start ()
 {
-    //if(myHandle != nullptr && body != nullptr && arg != nullptr)
-    thread_create(&myHandle, body, arg);
-    if(body== nullptr)TCB::running=myHandle;
+    thread_create(&myHandle, body, arg); //create thread, and if its not handler empty it is created
     if(myHandle!= nullptr)return 0;
     return -1;
 }
@@ -48,14 +46,16 @@ int Thread::sleep (time_t time)
 }
 Thread::Thread ()
 {
-    this->body = runWrapper;
-    this->arg = this;
+    if(body == nullptr){ //so that run is ignored if constructor already called, else set run as the correct body
+        this->body = runWrapper;
+        this->arg = this;
+    }
 
 }
 void Thread:: runWrapper(void* thr) {
     Thread* thread=(Thread*)thr;
     if(thread) {
-        thread->run();
+        thread->run(); //call redefined function
     }
 }
 
@@ -77,10 +77,12 @@ int Semaphore::signal ()
 }
 
 PeriodicThread::PeriodicThread (time_t period) : Thread(), period(period) {}
+
 void PeriodicThread::terminate ()
 {
     period = 0;
 }
+
 void PeriodicThread:: runWrapper(void* thr) {
     PeriodicThread *perThr = (PeriodicThread *) thr;
     while (perThr->period>0) {
@@ -91,7 +93,7 @@ void PeriodicThread:: runWrapper(void* thr) {
 
 char Console::getc ()
 {
-    return ::getc();
+    return ::getc(); //for some reason, ako ne stavim ::, funkcija nece biti pozvana tacno
 }
 void Console::putc (char c)
 {
